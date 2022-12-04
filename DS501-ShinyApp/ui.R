@@ -12,7 +12,7 @@ shinyUI(navbarPage(theme = shinytheme("darkly"),
                      ribbon_css("https://github.com/swoosh1337/DS-Projects/tree/main/DS501-ShinyApp", text = "Github", fade = FALSE,position="left"),                  
                      mainPanel(
                        
-                       "The repository of this project can be found here 
+                       "The repository of this project can be found by clicking on the link in the top left corner.
                        This Case Study3 is a clustering and correlation analysis on data from Counter Strike Global Offensive. I chose this 
                        dataset because I have been playing CSGO since 2014 and I thought it would be cool and fun to explore the data associated with it. 
                        There are several statistics in this dataset like player's name, country player is from, kill/death ratio, rating and so on.
