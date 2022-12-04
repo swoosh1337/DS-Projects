@@ -1,0 +1,303 @@
+---
+title: "CSGO K-means"
+author: "Irakli Grigolia"
+date: "2022-12-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+# Seems like optimal cluster number is 3 from this elbow plot
+```{r }
+library(shiny)
+library(readxl)
+library(cluster)
+library(ggvis)
+library(shinythemes)
+library(tidyverse)
+library(ggpubr)
+library(flextable)
+csgo_data = read_csv("player_stats.csv")
+#remove first column for clustering analysis
+cs_df1 = csgo_data[,-1]
+cs_df2 = cs_df1[,-1]
+cs_df2 = cs_df2[,-1]
+cs_df2 = cs_df2[,-1]
+
+# k means centers loop
+wss = kmeans(cs_df2, centers=1)$tot.withinss
+for (i in 2:15)
+  wss[i] = kmeans(cs_df2, centers=i)$tot.withinss
+#sse analysis to pick # of clusters
+sse = data.frame(c(1:15), c(wss))
+names(sse)[1] = 'Clusters'
+names(sse)[2] = 'SSE'
+sse %>%
+  ggvis(~Clusters, ~SSE) %>%
+  layer_points(fill := 'blue') %>% 
+  layer_lines() %>%
+  set_options(height = 300, width = 400)
+```
+
+## EDA
+
+ Look at the head
+```{r}
+head(cs_df1)
+
+```
+
+Look at tail
+```{r}
+tail(cs_df1)
+
+
+```
+
+
+
+```{r}
+
+str(cs_df1)
+
+```
+
+
+```{r}
+
+summary(cs_df1)
+
+```
+
+No null values in dataset
+```{r}
+
+lapply(cs_df1,function(x) { length(which(is.na(x)))})
+
+```
+
+Check for duplicates
+```{r}
+
+duplicated(cs_df1)
+
+```
+
+Lets Look at distribution of ratings among players. Seems like most of the players are somewhere between 0.9 and 1.1.
+```{r}
+x <- cs_df1$rating
+h <- hist(x, breaks=10, col="red", xlab="Rating",main="Histogram with Normal Curve")
+xfit<-seq(min(x),max(x),length=40)
+yfit<-dnorm(xfit,mean=mean(x),sd=sd(x))
+yfit <- yfit*diff(h$mids[1:2])*length(x)
+lines(xfit, yfit, col="blue", lwd=2) 
+
+```
+
+
+```{r}
+
+x <- cs_df1$kd_diff
+h <- hist(x, breaks=10, col="red", xlab="kd_diff",main="Histogram with Normal Curve")
+xfit<-seq(min(x),max(x),length=40)
+yfit<-dnorm(xfit,mean=mean(x),sd=sd(x))
+yfit <- yfit*diff(h$mids[1:2])*length(x)
+lines(xfit, yfit, col="blue", lwd=2) 
+
+
+
+```
+
+
+```{r}
+
+x <- cs_df1$kd
+h <- hist(x, breaks=10, col="green", xlab="kd",main="Histogram with Normal Curve")
+xfit<-seq(min(x),max(x),length=40)
+yfit<-dnorm(xfit,mean=mean(x),sd=sd(x))
+yfit <- yfit*diff(h$mids[1:2])*length(x)
+lines(xfit, yfit, col="blue", lwd=2) 
+
+
+```
+
+
+```{r}
+
+x <- cs_df1$total_rounds
+h <- hist(x, breaks=10, col="blue", xlab="total_rounds",main="Histogram with Normal Curve")
+xfit<-seq(min(x),max(x),length=40)
+yfit<-dnorm(xfit,mean=mean(x),sd=sd(x))
+yfit <- yfit*diff(h$mids[1:2])*length(x)
+lines(xfit, yfit, col="blue", lwd=2) 
+
+```
+As we can see from the plot below, relationship between kd raiton and rating seems to be linear
+
+```{r}
+a <- cs_df1$rating
+b <- cs_df1$kd
+
+plot(b, a, pch = 20, col = "lightblue")
+abline(lm(a ~ b), col = "red", lwd = 2)
+
+
+
+```
+
+There is some correlation between rating and kd_diff. Normally, the better your kd_diff is the higher rating you have.
+```{r}
+a <- cs_df1$rating
+b <- cs_df1$kd_diff
+
+plot(b, a, pch = 20, col = "lightblue")
+abline(lm(a ~ b), col = "red", lwd = 2)
+
+
+
+```
+
+Not much correlation between rating and total_maps, but in general, the more maps you play, more chance you have to have a good rating.
+```{r}
+
+a <- cs_df1$rating
+b <- cs_df1$total_maps
+
+plot(b, a, pch = 20, col = "lightblue")
+abline(lm(a ~ b), col = "red", lwd = 2)
+
+
+```
+
+This plot is pretty similar to the previous one.
+```{r}
+
+a <- cs_df1$rating
+b <- cs_df1$total_rounds
+
+plot(b, a, pch = 20, col = "lightblue")
+abline(lm(a ~ b), col = "red", lwd = 2)
+
+
+```
+
+Total_rounds and total_maps are basically interchangable.
+```{r}
+a <- cs_df1$total_rounds
+b <- cs_df1$total_maps
+
+plot(b, a, pch = 20, col = "lightblue")
+abline(lm(a ~ b), col = "red", lwd = 2)
+
+
+
+```
+Not much correlation between number of maps a player plays and his kd ratio.
+
+```{r}
+
+a <- cs_df1$total_maps
+b <- cs_df1$kd
+
+plot(b, a, pch = 20, col = "lightblue")
+abline(lm(a ~ b), col = "red", lwd = 2)
+
+
+```
+##In CSGO, rating of 1.2 and more is considered to be very high. Lets look at the players with the highest ratings.But it needs to be said that rating only does not say much about the player, yes it is good to have a higher rating but, more important factor is who you have that high rating against.
+
+```{r}
+
+avg_rating_all <- aggregate(rating ~ name, cs_df1, mean)
+top_rated <- avg_rating_all %>% filter(rating > 1.2)
+num_top_rated <- count(top_rated)
+flextable(num_top_rated)
+
+```
+
+Lets look at rating by countries and see wich country has rating greater than 1.
+``` {r}
+library(kableExtra)
+library(gt)
+teams_nat <- aggregate(rating ~ country , cs_df1,mean)
+flextable(teams_nat %>% filter(rating>1))
+
+```
+
+See which country have kd ratio greater than 1
+```{r}
+
+teams_kd <- aggregate(kd~country  , cs_df1,mean)
+flextable(teams_kd %>% filter(kd>1))
+
+```
+
+From correlation matrix below, we can observe that there is a linear orrelation between total_rounds and totla_maps as we already said that before,kd ratio and kd_diff,rating and kd_diff, rating and kd ratio.
+
+```{r}
+cs_df4 = cs_df1[,-1]
+cs_df4 = cs_df4[,-1]
+cs_df4 = cs_df4[,-1]
+flextable(as.data.frame(as.table(cor(cs_df4, method = "pearson", use = "complete.obs"))))
+
+```
+
+Heatmap of the dataset
+```{r}
+library("reshape")                                                # Load reshape package
+heatmap(as.matrix(cs_df4), cexRow =2, margins = c(5,5))
+  
+
+```
+# Now lets try Linear Regression plots
+
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(broom)
+library(ggpubr)
+
+m <- lm(rating ~ kd, data = cs_df4)
+
+summary(m)
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(m)
+par(mfrow=c(1,1))
+
+
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(m)
+par(mfrow=c(1,1))
+
+
+```
+
+```{r}
+
+p<-ggplot(cs_df4, aes(x=kd, y=rating))+
+                     geom_point()
+p
+
+```
+As we can see the kd ratio is the best predicting feature of out all the features.
+```{r}
+p <- p+ geom_smooth(method="lm", col="black")
+p
+
+```
+
+# Conclusions
+
+After exploring the dataset, we can confidently say that the rating is mostly dependent on the kd ratio of the players which is in linear relationship with kd_diff. Playing more maps means playing more rounds and that means that a player has higher chance of having better kd ratio or kd_diff that means that he/she has a higher chance to have a higher rating.
