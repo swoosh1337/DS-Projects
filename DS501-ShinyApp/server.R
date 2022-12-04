@@ -1,11 +1,12 @@
 
-library(shiny)
+# library(shiny)
 library(readxl)
 library(cluster)
 library(ggvis)
 library(shinythemes)
 library(tidyverse)
 library(ggpubr)
+library(markdown)
 
 
 
@@ -13,11 +14,11 @@ library(ggpubr)
 server <- function(input, output){
   
   
-  output$CDplot = renderDataTable(
+  output$CSplot = renderDataTable(
     cs_df1
   )
   output$plot1 = renderPlot(
-    {clusplot(CD, clusters$cluster, color=T, shade=T,labels=1,lines=1, main="CSGO K Means Clustering")
+    {clusplot(cs_df2, clusters$cluster, color=T, shade=T,labels=1,lines=1, main="CSGO K Means Clustering")
     }
   )
 
@@ -25,14 +26,14 @@ server <- function(input, output){
   output$correlation = renderPlot({
     req(input$var1)
     req(input$var2)
-    x <- CD[[input$var1]]
-    y <- CD[[input$var2]]
+    x <- cs_df2[[input$var1]]
+    y <- cs_df2[[input$var2]]
     plot(x, y)
   })
   
 
   selectedData <- reactive({
-    cs_df4[, c(input$variable1, input$variable2)]
+    cs_df2[, c(input$variable1, input$variable2)]
   })
 
   cl <- reactive({

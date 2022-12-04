@@ -1,9 +1,9 @@
 
-library(shiny)
+#library(shiny)
 library(shinythemes)
 library(gitlink)
 
-shinyUI(navbarPage(theme = shinytheme("darkly"),
+shinyUI(navbarPage(theme = shinytheme("superhero"),
                   
                    "Counter Strike K-Means",
                    tabPanel(
@@ -13,8 +13,9 @@ shinyUI(navbarPage(theme = shinytheme("darkly"),
                      mainPanel(
                        
                        "The repository of this project can be found by clicking on the link in the top left corner.
-                       This Case Study3 is a clustering and correlation analysis on data from Counter Strike Global Offensive. I chose this 
-                       dataset because I have been playing CSGO since 2014 and I thought it would be cool and fun to explore the data associated with it. 
+                       This Case Study3 is a clustering and correlation analysis on data from Counter Strike Global Offensive which can be found on Kaggle.. 
+                       I chose this  dataset because I have been playing CSGO since 2014 and I thought it would be cool and fun to explore the data associated with it. 
+                       I performed EDA which can  be found in the last tab.
                        There are several statistics in this dataset like player's name, country player is from, kill/death ratio, rating and so on.
                         A k-means clustering is a popular unsupervised machine learning algorithm. 
                         The dataset is partitioned into  a set of groups based on their simillarity.
@@ -40,7 +41,7 @@ shinyUI(navbarPage(theme = shinytheme("darkly"),
                       
                      ),
                      mainPanel(
-                       dataTableOutput('CDplot')
+                       dataTableOutput('CSplot')
                      )
                      
                    ),

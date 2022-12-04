@@ -1,3 +1,13 @@
+library(readr)
+library(readxl)
+library(cluster)
+library(ggvis)
+library(shinythemes)
+library(tidyverse)
+library(ggpubr)
+library(dplyr)
+library(markdown)
+
 csgo_data = read_csv("player_stats.csv")
 #remove first column for clustering analysis
 cs_df1 = csgo_data[,-1]
